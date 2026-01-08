@@ -15,17 +15,15 @@ jobs:
         with:
           node-version: 18
       - name: Install dependencies
-        working-directory: ./module-5-ci-cd-node-app
         run: npm install
       - name: Run tests
-        working-directory: ./module-5-ci-cd-node-app
         run: |
           npm test > test-results.txt || true
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: ./module-5-ci-cd-node-app/test-results.txt
+          path: test-results.txt
   deploy:
     name: Deploy to Self-Hosted Runner (Windows)
     needs: test
@@ -44,20 +42,16 @@ jobs:
         shell: cmd
       
       - name: Install dependencies
-        working-directory: ./module-5-ci-cd-node-app
         run: npm install
       
       - name: Deploy Application with PM2
-        working-directory: ./module-5-ci-cd-node-app
         shell: powershell
         run: |
           Write-Host "Starting application..."
-          # Check if app is running and stop it
           $appExists = pm2 list | Select-String "app"
           if ($appExists) {
             pm2 stop app
             pm2 delete app
           }
-          # Start the application
-          pm2 start index.js --name app
+          pm2 start src/server.js --name app
           pm2 save
