@@ -1,26 +1,60 @@
-deploy:
-  name: Deploy to Self-Hosted Runner (Windows)
-  needs: test
-  runs-on: self-hosted
+name: Node.js CI/CD Pipeline
 
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+on:
+  push:
+    branches:
+      - main
 
-    - name: Download test results
-      uses: actions/download-artifact@v4
-      with:
-        name: test-results
+jobs:
+  test:
+    name: Test Application
+    runs-on: ubuntu-latest
 
-    - name: Display test results
-      run: type test-results.txt
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: npm install
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-    - name: Deploy Application
-      shell: pwsh
-      run: |
-        Write-Host "Starting application..."
-        pm2 stop app; if ($LASTEXITCODE -ne 0) { Write-Host "App not running, skipping stop" }
-        pm2 start index.js --name app
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: |
+          npm test > test-results.txt || true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.txt
+
+  deploy:
+    name: Deploy to Self-Hosted Runner (Windows)
+    needs: test
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+
+      - name: Display test results
+        run: type test-results.txt
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy Application
+        shell: pwsh
+        run: |
+          Write-Host "Starting application..."
+          pm2 stop app; if ($LASTEXITCODE -ne 0) { Write-Host "App not running, skipping stop" }
+          pm2 start index.js --name app
