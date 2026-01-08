@@ -59,4 +59,4 @@ jobs:
         run: |
           Write-Host "Starting application..."
           pm2 stop app; if ($LASTEXITCODE -ne 0) { Write-Host "App not running, skipping stop" }
-          pm2 start .\index.js --name app
+          pm2 start .\module-5-ci-cd-node-app\index.js --name app
