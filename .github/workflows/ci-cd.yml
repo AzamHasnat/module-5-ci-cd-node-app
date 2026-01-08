@@ -38,7 +38,7 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout code
+      - name: Checkout code (flattened)
         uses: actions/checkout@v4
         with:
           path: .
@@ -54,9 +54,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Deploy Application
+      - name: Deploy Application with PM2
         shell: powershell
         run: |
           Write-Host "Starting application..."
           pm2 stop app; if ($LASTEXITCODE -ne 0) { Write-Host "App not running, skipping stop" }
-          pm2 start index.js --name app
+          pm2 start .\index.js --name app
