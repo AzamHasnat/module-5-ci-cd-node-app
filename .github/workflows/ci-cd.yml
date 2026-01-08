@@ -1,62 +1,63 @@
 name: Node.js CI/CD Pipeline
-
 on:
   push:
     branches:
       - main
-
 jobs:
   test:
     name: Test Application
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-
       - name: Install dependencies
+        working-directory: ./module-5-ci-cd-node-app
         run: npm install
-
       - name: Run tests
+        working-directory: ./module-5-ci-cd-node-app
         run: |
           npm test > test-results.txt || true
-
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test-results.txt
-
+          path: ./module-5-ci-cd-node-app/test-results.txt
   deploy:
     name: Deploy to Self-Hosted Runner (Windows)
     needs: test
     runs-on: self-hosted
-
     steps:
-      - name: Checkout code (flattened)
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          path: .
-
+      
       - name: Download test results
         uses: actions/download-artifact@v4
         with:
           name: test-results
-
+      
       - name: Display test results
         run: type test-results.txt
-
+        shell: cmd
+      
       - name: Install dependencies
+        working-directory: ./module-5-ci-cd-node-app
         run: npm install
-
+      
       - name: Deploy Application with PM2
+        working-directory: ./module-5-ci-cd-node-app
         shell: powershell
         run: |
           Write-Host "Starting application..."
-          pm2 stop app; if ($LASTEXITCODE -ne 0) { Write-Host "App not running, skipping stop" }
-          pm2 start .\module-5-ci-cd-node-app\index.js --name app
+          # Check if app is running and stop it
+          $appExists = pm2 list | Select-String "app"
+          if ($appExists) {
+            pm2 stop app
+            pm2 delete app
+          }
+          # Start the application
+          pm2 start index.js --name app
+          pm2 save
