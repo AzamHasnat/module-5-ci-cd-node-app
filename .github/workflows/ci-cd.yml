@@ -40,6 +40,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          path: .
 
       - name: Download test results
         uses: actions/download-artifact@v4
