@@ -53,7 +53,7 @@ jobs:
         run: npm install
 
       - name: Deploy Application
-        shell: pwsh
+        shell: powershell
         run: |
           Write-Host "Starting application..."
           pm2 stop app; if ($LASTEXITCODE -ne 0) { Write-Host "App not running, skipping stop" }
